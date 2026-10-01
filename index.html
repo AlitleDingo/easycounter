@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Number Counter</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      color: #e2e8f0;
+      background: #0f172a;
+      color-scheme: dark;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      --glow-x: 50%;
+      --glow-y: 12%;
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 18px;
+      background:
+        radial-gradient(ellipse 700px 420px at 50% 0%, #304968 0%, transparent 72%),
+        #0f172a;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      top: var(--glow-y);
+      left: var(--glow-x);
+      width: min(90vw, 1000px);
+      height: min(70vw, 700px);
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgb(56 189 248 / 22%), rgb(99 102 241 / 9%) 42%, transparent 72%);
+      filter: blur(45px);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: top 140ms ease-out, left 140ms ease-out;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 680px);
+      padding: 32px;
+      border: 1px solid rgb(148 163 184 / 22%);
+      border-radius: 20px;
+      background: rgb(24 36 56 / 86%);
+      box-shadow:
+        0 24px 70px rgb(2 6 23 / 45%),
+        0 0 55px rgb(56 189 248 / 7%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #0ab1ff;
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: #f8fafc;
+      font-size: clamp(1.8rem, 5vw, 2.25rem);
+      letter-spacing: -.04em;
+    }
+
+    .subtitle {
+      margin: 10px 0 26px;
+      color: #a3b2c7;
+      line-height: 1.6;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label, .section-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #dbe5f2;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    input, select, button, textarea {
+      font: inherit;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid #40516a;
+      border-radius: 10px;
+      color: #f1f5f9;
+      background: #111c2e;
+    }
+
+    input:focus-visible, select:focus-visible, button:focus-visible, textarea:focus-visible {
+      outline: 3px solid #38bdf8;
+      outline-offset: 3px;
+    }
+
+    .field-hint, .hint {
+      margin: 7px 0 0;
+      color: #91a2ba;
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+
+    .section { margin-top: 22px; }
+
+    .format-row, .actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    select { flex: 1; min-width: 0; }
+
+    button {
+      min-height: 46px;
+      padding: 10px 15px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: #082f49;
+      background: #7dd3fc;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    button:hover { background: #bae6fd; }
+    button:active { transform: translateY(1px); }
+
+    .secondary {
+      border-color: #40516a;
+      color: #dbeafe;
+      background: #26364d;
+    }
+
+    .secondary:hover { background: #344861; }
+
+    .generate-button { width: 100%; margin-top: 18px; }
+
+    .preview-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .preview-heading .section-label { margin: 0; }
+
+    #countLabel {
+      color: #91a2ba;
+      font-size: .82rem;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 200px;
+      margin-top: 10px;
+      padding: 15px;
+      resize: vertical;
+      border: 1px solid #334155;
+      border-radius: 11px;
+      color: #dbeafe;
+      background: #101a2a;
+      font: .9rem/1.7 "Cascadia Code", Consolas, monospace;
+      tab-size: 2;
+    }
+
+    .actions { margin-top: 12px; }
+    .actions button { flex: 1; }
+
+    #message {
+      min-height: 1.4em;
+      margin: 12px 0 0;
+      color: #7dd3fc;
+      font-size: .88rem;
+    }
+
+    @media (max-width: 540px) {
+      main { padding: 25px 20px; }
+      .fields { grid-template-columns: 1fr; gap: 14px; }
+      .format-row, .actions { flex-direction: column; }
+      .actions button { width: 100%; }
+    }
+
+    .site-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #334155;
+      color: #91a2ba;
+      font-size: .8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">A tool for dingos</p>
+    <h1>Number Counter</h1>
+    <p class="subtitle">Build a number sequence with your own range and step, then copy or save it.</p>
+
+    <form id="counterForm">
+      <div class="fields">
+        <div>
+          <label for="start">Start at</label>
+          <input id="start" type="number" step="1" value="0" required> 
+        </div>
+        <div>
+          <label for="end">End at (inclusive)</label>
+          <input id="end" type="number" step="1" value="10" required>
+        </div>
+        <div>
+          <label for="step">Step</label>
+          <input id="step" type="number" step="1" value="1" required>
+        </div>
+      </div>
+      <p class="field-hint">Use a positive step to count up and a negative step to count down. Maximum: 100,000 numbers.</p>
+
+      <section class="section">
+        <label for="format">Number layout</label>
+        <div class="format-row">
+          <select id="format">
+            <option value="space">Spaces</option>
+            <option value="comma">Comma separated</option>
+            <option value="newline">One per line</option>
+            <option value="tab">Tabs</option>
+          </select>
+        </div>
+      </section>
+
+      <button class="generate-button" type="submit">Generate sequence</button>
+    </form>
+
+    <div class="preview-heading">
+      <label class="section-label" for="output">Output preview</label>
+      <span id="countLabel">0 numbers</span>
+    </div>
+    <textarea id="output" readonly aria-label="Generated numbers preview" placeholder="Your sequence will appear here."></textarea>
+
+    <div class="actions">
+      <button id="copy" type="button" class="secondary">Copy all</button>
+      <button id="save" type="button" class="secondary">Download .txt</button>
+    </div>
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <footer class="site-footer">
+      <p>© 2026 Dingo Inc</p>
+      <p>Powered by <a href="https://en.wikipedia.org/wiki/Methane" target="_blank" rel="noopener noreferrer">methane engine</a></p>
+    </footer>
+  </main>
+
+  <script>
+    const MAX_NUMBERS = 100_000;
+    const form = document.getElementById("counterForm");
+    const startInput = document.getElementById("start");
+    const endInput = document.getElementById("end");
+    const stepInput = document.getElementById("step");
+    const formatSelect = document.getElementById("format");
+    const output = document.getElementById("output");
+    const countLabel = document.getElementById("countLabel");
+    const message = document.getElementById("message");
+
+    let numbers = [];
+
+    const separators = {
+      space: " ",
+      comma: ", ",
+      newline: "\n",
+      tab: "\t"
+    };
+
+    function renderOutput() {
+      output.value = numbers.join(separators[formatSelect.value]);
+      countLabel.textContent = `${numbers.length.toLocaleString()} number${numbers.length === 1 ? "" : "s"}`;
+    }
+
+    function generateNumbers() {
+      const rawValues = [startInput.value, endInput.value, stepInput.value];
+      const values = rawValues.map(value => Number(value));
+
+      if (rawValues.some(value => value.trim() === "") ||
+          values.some(value => !Number.isSafeInteger(value))) {
+        message.textContent = "Enter safe whole numbers for the start, end, and step.";
+        return false;
+      }
+
+      const [startNumber, endNumber, stepNumber] = values;
+
+      if (stepNumber === 0) {
+        message.textContent = "The step cannot be zero.";
+        return false;
+      }
+      if (startNumber < endNumber && stepNumber < 0) {
+        message.textContent = "Use a positive step when counting upward.";
+        return false;
+      }
+      if (startNumber > endNumber && stepNumber > 0) {
+        message.textContent = "Use a negative step when counting downward.";
+        return false;
+      }
+
+      const start = BigInt(startNumber);
+      const end = BigInt(endNumber);
+      const step = BigInt(stepNumber);
+      const distance = start <= end ? end - start : start - end;
+      const count = distance / (step < 0n ? -step : step) + 1n;
+
+      if (count > BigInt(MAX_NUMBERS)) {
+        message.textContent = `That range exceeds the ${MAX_NUMBERS.toLocaleString()}-number limit.`;
+        return false;
+      }
+
+      numbers = [];
+      let current = start;
+      for (let i = 0; i < Number(count); i++) {
+        numbers.push(current.toString());
+        current += step;
+      }
+
+      renderOutput();
+      message.textContent = `Generated ${numbers.length.toLocaleString()} numbers.`;
+      return true;
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      generateNumbers();
+    });
+
+    formatSelect.addEventListener("change", () => {
+      renderOutput();
+    });
+
+    document.getElementById("copy").addEventListener("click", async () => {
+      if (!numbers.length && !generateNumbers()) return;
+
+      try {
+        await navigator.clipboard.writeText(output.value);
+        message.textContent = "Copied all numbers to the clipboard.";
+      } catch {
+        output.focus();
+        output.select();
+        const copied = document.execCommand("copy");
+        message.textContent = copied
+          ? "Copied all numbers to the clipboard."
+          : "Copy was blocked. Select the preview and copy it manually.";
+      }
+    });
+
+    document.getElementById("save").addEventListener("click", () => {
+      if (!numbers.length && !generateNumbers()) return;
+
+      const blob = new Blob([output.value], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "numbers.txt";
+      link.click();
+      URL.revokeObjectURL(url);
+      message.textContent = "Downloaded numbers.txt.";
+    });
+
+    generateNumbers();
+
+    document.addEventListener("pointermove", event => {
+      document.body.style.setProperty("--glow-x", `${event.clientX}px`);
+      document.body.style.setProperty("--glow-y", `${event.clientY}px`);
+    });
+  </script>
+</body>
+</html>
